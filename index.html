@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HUFS Space Hunter AI Chatbot</title>
+    <style>
+        :root {
+            --hufs-blue: #002B49;
+            --hufs-gold: #C5A059;
+            --hufs-accent: #005691;
+            --bg-gray: #F4F6F9;
+            --chat-bg: #FFFFFF;
+            --user-msg: #002B49;
+            --bot-msg: #EBF3FA;
+            --text-dark: #222222;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 480px;
+            height: 92vh;
+            background: var(--chat-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #E1E8ED;
+        }
+
+        .chat-header {
+            background: var(--hufs-blue);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-title h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header-title span {
+            font-size: 0.75rem;
+            background: var(--hufs-gold);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .campus-toggle {
+            display: flex;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 3px;
+            border-radius: 12px;
+            gap: 2px;
+        }
+
+        .toggle-btn {
+            border: none;
+            background: transparent;
+            color: #ccc;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: white;
+            color: var(--hufs-blue);
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background: #FAFCFE;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 82%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.bot {
+            align-self: flex-start;
+        }
+
+        .message.user {
+            align-self: flex-end;
+        }
+
+        .bubble {
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .message.bot .bubble {
+            background: var(--bot-msg);
+            color: var(--text-dark);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .message.user .bubble {
+            background: var(--user-msg);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .msg-time {
+            font-size: 0.68rem;
+            color: #888;
+            margin-top: 4px;
+            padding: 0 4px;
+        }
+
+        .message.user .msg-time {
+            text-align: right;
+        }
+
+        .quick-chips {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px 16px;
+            background: white;
+            border-top: 1px solid #F0F4F8;
+            scrollbar-width: none;
+        }
+
+        .quick-chips::-webkit-scrollbar {
+            display: none;
+        }
+
+        .chip {
+            white-space: nowrap;
+            background: #F0F4F8;
+            color: var(--hufs-accent);
+            border: 1px solid #D6E4F0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip:hover {
+            background: var(--hufs-accent);
+            color: white;
+        }
+
+        .chat-input-area {
+            padding: 12px 16px;
+            background: white;
+            border-top: 1px solid #E1E8ED;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 1px solid #D1D9E0;
+            border-radius: 24px;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .chat-input:focus {
+            border-color: var(--hufs-accent);
+        }
+
+        .send-btn {
+            background: var(--hufs-blue);
+            color: white;
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .send-btn:hover {
+            background: var(--hufs-accent);
+        }
+
+        .send-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: white;
+        }
+
+        .tick-box {
+            background: #FFF8E7;
+            border: 1px solid #FFE0B2;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-top: 8px;
+            font-size: 0.82rem;
+            color: #8C6D1F;
+        }
+
+        .tick-box button {
+            background: #F5A623;
+            color: white;
+            border: none;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <div class="header-title">
+            <h1>HUFS Space Hunter</h1>
+            <span>v1.0</span>
+        </div>
+        <div class="campus-toggle">
+            <button class="toggle-btn active" onclick="setCampus('seoul')">서울</button>
+            <button class="toggle-btn" onclick="setCampus('global')">글로벌</button>
+        </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <div class="message bot">
+            <div class="bubble">
+                안녕하세요! <b>HUFS Space Hunter</b> 입니다. 🏫<br><br>
+                한국외국어대학교 서울캠퍼스 & 글로벌캠퍼스의 식당, 자습공간, 편의시설 정보 및 실시간 추천 위치를 안내해 드릴게요! 아래 질문을 선택하거나 직접 물어보세요.
+            </div>
+            <div class="msg-time">방금 전</div>
+        </div>
+    </div>
+
+    <div class="quick-chips" id="quickChips">
+        <div class="chip" onclick="sendQuick('인문관 편의시설')">🏢 인문관 편의시설/식당</div>
+        <div class="chip" onclick="sendQuick('인문관 콘센트')">🔌 인문관 노트북 꿀자리</div>
+        <div class="chip" onclick="sendQuick('사이버관 자습')">📖 사이버관 조용한 자습실</div>
+        <div class="chip" onclick="sendQuick('도서관 프린트')">🖨️ 도서관 프린트/복사</div>
+        <div class="chip" onclick="sendQuick('글캠 공강')">🌳 글캠 공강 쉼터</div>
+    </div>
+
+    <div class="chat-input-area">
+        <input type="text" id="userInput" class="chat-input" placeholder="장소나 편의시설을 입력하세요..." onkeypress="handleKeyPress(event)">
+        <button class="send-btn" onclick="sendMessage()">
+            <svg viewBox="0 0 24 24"><path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/></svg>
+        </button>
+    </div>
+</div>
+
+<script>
+    let currentCampus = 'seoul';
+
+    const knowledgeBase = [
+        {
+            campus: 'seoul',
+            keywords: ['인문관', '식당', '매점', '우체국', '문구점', '편의시설'],
+            answer: "서울캠퍼스 인문과학관(인문관) 1층에는 <b>학생식당, 매점, 우체국, 문구점</b>이 위치해 있습니다! 식사나 우편, 학용품 구매를 한곳에서 해결하기 좋습니다.",
+            tick: "💡 <b>실시간 팁:</b> 인문관 식당은 12:00~12:40 사이가 가장 붐벼요!"
+        },
+        {
+            campus: 'seoul',
+            keywords: ['인문관 콘센트', '노트북', '꿀자리', '과제', '인문관 4층'],
+            answer: "인문관 4층 자판기 앞 창가 테이블을 추천해요! 🔌 <b>콘센트가 완비</b>되어 있고 적당한 백색소음이 있어 노트북 과제하기 적합합니다. (차선책: 1층 로비 휴게공간)",
+            tick: "⚡ <b>실시간 쾌적도:</b> 현재 인문관 4층 창가석 좌석 여유 보통"
+        },
+        {
+            campus: 'seoul',
+            keywords: ['사이버관', '카페', '아티제', '올리브영', '사관'],
+            answer: "사이버관 1층에는 <b>아티제 카페</b>와 <b>올리브영</b>이 입점해 있어 공강 시간에 커피나 간단한 생필품 구매가 편리합니다. ☕",
+            tick: ""
+        },
+        {
+            campus: 'seoul',
+            keywords: ['사이버관 자습', '조용한', '자습실', '열람실'],
+            answer: "사이버관 1층 로비 라운지를 추천합니다! 비교적 조용한 분위기라 집중해서 독서나 자습을 하기 좋습니다. 📚",
+            tick: "🤫 <b>분위기:</b> 침묵 유지 권장 구간입니다."
+        },
+        {
+            campus: 'seoul',
+            keywords: ['도서관', '중앙도서관', '프린트', '복사', '무인프린트'],
+            answer: "서울캠퍼스 중앙도서관 1층 및 인문관/사회관 로비에 <b>무인 복사/프린트 기기</b>가 설치되어 있습니다. 도서관 내 노트북 전용석도 활용해 보세요!",
+            tick: ""
+        },
+        {
+            campus: 'global',
+            keywords: ['글캠', '글로벌', '학식', '학생식당', '식당'],
+            answer: "글로벌캠퍼스는 <b>어문학관 학생식당, 후생관(HUFS Community Center) 식당, 제2기숙사 식당</b>을 이용할 수 있으며 이동 경사로가 잘 갖추어져 있습니다. 🍽️",
+            tick: "🍱 <b>추천:</b> 후생관 학식이 메뉴 다양성이 가장 높습니다."
+        },
+        {
+            campus: 'global',
+            keywords: ['글캠 공강', '백년관', '쉼터', '공학관', '명수당'],
+            answer: "글로벌캠퍼스 공강 시간 꿀스팟 🍯<br>1. 백년관(본관) 컨퍼런스홀 주변<br>2. 명수당 주변 야외 벤치<br>3. 도서관 전자정보실<br>4. 공학관 & 학생회관 라운지",
+            tick: "☀️ <b>날씨 좋은 날:</b> 명수당 산책길 휴식을 추천합니다!"
+        }
+    ];
+
+    function setCampus(campus) {
+        currentCampus = campus;
+        const btns = document.querySelectorAll('.toggle-btn');
+        btns.forEach(btn => btn.classList.remove('active'));
+        if(campus === 'seoul') btns[0].classList.add('active');
+        else btns[1].classList.add('active');
+
+        addBotMessage(`${campus === 'seoul' ? '서울캠퍼스' : '글로벌캠퍼스'} 모드로 변경되었습니다! 무엇을 도와드릴까요?`);
+    }
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') sendMessage();
+    }
+
+    function sendQuick(text) {
+        document.getElementById('userInput').value = text;
+        sendMessage();
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('userInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        addUserMessage(text);
+        input.value = '';
+
+        setTimeout(() => {
+            respondTo(text);
+        }, 400);
+    }
+
+    function addUserMessage(text) {
+        const chat = document.getElementById('chatMessages');
+        const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message user';
+        msgDiv.innerHTML = `
+            <div class="bubble">${escapeHtml(text)}</div>
+            <div class="msg-time">${now}</div>
+        `;
+        chat.appendChild(msgDiv);
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    function addBotMessage(htmlContent, tickContent = '') {
+        const chat = document.getElementById('chatMessages');
+        const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message bot';
+        
+        let content = `<div class="bubble">${htmlContent}`;
+        if (tickContent) {
+            content += `<div class="tick-box">${tickContent}</div>`;
+        }
+        content += `</div><div class="msg-time">${now}</div>`;
+
+        msgDiv.innerHTML = content;
+        chat.appendChild(msgDiv);
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    function respondTo(query) {
+        let matched = null;
+
+        for (let item of knowledgeBase) {
+            for (let kw of item.keywords) {
+                if (query.includes(kw)) {
+                    matched = item;
+                    break;
+                }
+            }
+            if (matched) break;
+        }
+
+        if (matched) {
+            addBotMessage(matched.answer, matched.tick);
+        } else {
+            addBotMessage(
+                `'<b>${escapeHtml(query)}</b>'에 관한 장소 정보를 찾지 못했습니다. 😅<br><br>` +
+                `질문 예시:<br>` +
+                `- "인문관 콘센트 자리 알려줘"<br>` +
+                `- "사이버관 카페 어디 있어?"<br>` +
+                `- "글캠 공강 시간에 쉴 곳 추천해줘"`
+            );
+        }
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+</script>
+
+</body>
+</html>
